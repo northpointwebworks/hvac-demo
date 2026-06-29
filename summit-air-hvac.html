@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summit Air HVAC – Fast & Reliable Heating & Cooling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue-deep:   #0F3460;
+      --blue-mid:    #1565C0;
+      --blue-bright: #1E88E5;
+      --blue-light:  #E3F0FB;
+      --ice:         #F4F9FE;
+      --white:       #FFFFFF;
+      --gray-100:    #F8FAFC;
+      --gray-200:    #E9EFF5;
+      --gray-400:    #94A3B8;
+      --gray-600:    #475569;
+      --gray-800:    #1E293B;
+      --orange:      #FF6B00;
+      --orange-light:#FFF3E8;
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   20px;
+      --shadow-sm:   0 1px 4px rgba(15,52,96,.08);
+      --shadow-md:   0 4px 20px rgba(15,52,96,.12);
+      --shadow-lg:   0 12px 48px rgba(15,52,96,.16);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; color: var(--gray-800); background: var(--white); line-height: 1.6; }
+
+    /* ── DEMO BADGE ── */
+    .demo-ribbon {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--blue-deep); color: white;
+      padding: 10px 24px; border-radius: 100px;
+      font-size: .8rem; font-weight: 600; letter-spacing: .04em;
+      z-index: 9999; box-shadow: var(--shadow-lg);
+      display: flex; align-items: center; gap: 8px;
+      pointer-events: none;
+    }
+    .demo-ribbon span { color: #FFD54F; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px);
+      background: #1B5E20; color: white;
+      padding: 14px 28px; border-radius: var(--radius-md);
+      font-size: .92rem; font-weight: 600;
+      z-index: 99999; box-shadow: var(--shadow-lg);
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+      display: flex; align-items: center; gap: 10px;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.error { background: #B71C1C; }
+    #toast.info  { background: var(--blue-mid); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 10000;
+      place-items: center; backdrop-filter: blur(3px);
+    }
+    .modal-overlay.open { display: grid; }
+    .modal-box {
+      background: white; border-radius: var(--radius-lg);
+      padding: 48px 40px; max-width: 440px; width: 90%;
+      text-align: center; box-shadow: var(--shadow-lg);
+      position: relative; animation: popIn .35s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes popIn { from { transform: scale(.85); opacity:0; } to { transform: scale(1); opacity:1; } }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: var(--gray-200); border: none; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 1rem; display: grid; place-items: center;
+      color: var(--gray-600); transition: background .2s;
+    }
+    .modal-close:hover { background: var(--gray-400); color: white; }
+    .modal-icon { font-size: 3rem; margin-bottom: 16px; }
+    .modal-title { font-family: 'DM Serif Display',serif; font-size: 1.7rem; color: var(--blue-deep); margin-bottom: 10px; }
+    .modal-body  { color: var(--gray-600); font-size: .95rem; line-height: 1.7; margin-bottom: 24px; }
+    .modal-btn {
+      background: var(--orange); color: white;
+      padding: 13px 32px; border-radius: var(--radius-sm);
+      border: none; cursor: pointer;
+      font-weight: 700; font-size: .95rem; width: 100%;
+      transition: background .2s;
+    }
+    .modal-btn:hover { background: #e65c00; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--blue-deep); color: var(--white);
+      text-align: center; padding: 10px 20px;
+      font-size: .82rem; font-weight: 500; letter-spacing: .02em;
+    }
+    .topbar a { color: #FFD54F; text-decoration: none; font-weight: 700; cursor: pointer; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--white); border-bottom: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-inner {
+      max-width: 1160px; margin: 0 auto; padding: 0 24px;
+      height: 68px; display: flex; align-items: center;
+      justify-content: space-between; gap: 16px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; cursor: pointer; }
+    .logo-icon { width: 40px; height: 40px; background: var(--blue-mid); border-radius: var(--radius-sm); display: grid; place-items: center; flex-shrink: 0; }
+    .logo-icon svg { fill: white; }
+    .logo-text { line-height: 1.15; }
+    .logo-name { font-weight: 800; font-size: 1.05rem; color: var(--blue-deep); display: block; }
+    .logo-tag  { font-size: .72rem; color: var(--gray-400); font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--gray-600); font-size: .9rem; font-weight: 500; transition: color .2s; cursor: pointer; }
+    .nav-links a:hover { color: var(--blue-mid); }
+    .nav-cta {
+      background: var(--orange); color: white; padding: 10px 22px;
+      border-radius: var(--radius-sm); font-weight: 700; font-size: .88rem;
+      text-decoration: none; transition: background .2s, transform .1s;
+      white-space: nowrap; flex-shrink: 0; cursor: pointer; border: none;
+    }
+    .nav-cta:hover { background: #e65c00; transform: translateY(-1px); }
+    .hamburger { display: none; cursor: pointer; background: none; border: none; padding: 4px; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, var(--blue-deep) 0%, #1a4a8a 60%, var(--blue-mid) 100%);
+      color: white; padding: 80px 24px 72px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-inner { max-width: 760px; margin: 0 auto; text-align: center; position: relative; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+      border-radius: 100px; padding: 6px 16px; font-size: .8rem; font-weight: 600;
+      letter-spacing: .04em; text-transform: uppercase; margin-bottom: 24px; color: #90CAF9;
+    }
+    .hero-badge .dot { width: 7px; height: 7px; background: #4CAF50; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.12; font-weight: 400; margin-bottom: 20px; letter-spacing: -.01em; }
+    .hero h1 span { color: #FFD54F; }
+    .hero-sub { font-size: clamp(.95rem, 2.2vw, 1.15rem); color: rgba(255,255,255,.82); max-width: 560px; margin: 0 auto 36px; line-height: 1.65; }
+    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+    .btn-primary {
+      background: var(--orange); color: white; padding: 16px 32px;
+      border-radius: var(--radius-sm); font-weight: 700; font-size: 1rem;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: background .2s, transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 16px rgba(255,107,0,.4); cursor: pointer; border: none;
+    }
+    .btn-primary:hover { background: #e65c00; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,0,.45); }
+    .btn-secondary {
+      background: rgba(255,255,255,.12); color: white; padding: 16px 32px;
+      border-radius: var(--radius-sm); font-weight: 600; font-size: 1rem;
+      text-decoration: none; border: 1.5px solid rgba(255,255,255,.35);
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: background .2s, transform .15s; backdrop-filter: blur(4px); cursor: pointer;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.2); transform: translateY(-2px); }
+    .hero-trust { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; }
+    .trust-item { display: flex; align-items: center; gap: 8px; font-size: .84rem; color: rgba(255,255,255,.75); font-weight: 500; }
+    .trust-item .check { color: #66BB6A; font-size: 1rem; }
+
+    /* ── EMERGENCY BANNER ── */
+    .emergency-banner { background: var(--orange); color: white; padding: 18px 24px; text-align: center; }
+    .emergency-banner .eb-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+    .emergency-banner strong { font-size: 1.05rem; font-weight: 700; }
+    .emergency-banner span  { font-size: .92rem; opacity: .9; }
+    .eb-call {
+      background: white; color: var(--orange); padding: 9px 22px;
+      border-radius: var(--radius-sm); font-weight: 800; font-size: .9rem;
+      text-decoration: none; white-space: nowrap; transition: transform .15s; cursor: pointer; border: none;
+    }
+    .eb-call:hover { transform: scale(1.03); }
+
+    /* ── SECTIONS ── */
+    section { padding: 80px 24px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--blue-bright); margin-bottom: 10px; }
+    .section-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 400; color: var(--blue-deep); line-height: 1.2; margin-bottom: 16px; }
+    .section-sub { color: var(--gray-600); max-width: 520px; font-size: 1rem; line-height: 1.7; }
+
+    /* ── SERVICES ── */
+    #services { background: var(--gray-100); }
+    .services-header { text-align: center; margin-bottom: 52px; }
+    .services-header .section-sub { margin: 0 auto; }
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+    .service-card {
+      background: white; border-radius: var(--radius-md); padding: 36px 28px;
+      border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm);
+      transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden;
+    }
+    .service-card::after { content:''; position:absolute; top:0;left:0;right:0; height:4px; background:var(--blue-mid); transform:scaleX(0); transform-origin:left; transition:transform .25s; }
+    .service-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .service-card:hover::after { transform: scaleX(1); }
+    .service-icon { width: 54px; height: 54px; background: var(--blue-light); border-radius: var(--radius-sm); display: grid; place-items: center; margin-bottom: 20px; }
+    .service-icon svg { stroke: var(--blue-mid); }
+    .service-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; color: var(--blue-deep); }
+    .service-card p  { color: var(--gray-600); font-size: .9rem; line-height: 1.65; margin-bottom: 18px; }
+    .service-link { color: var(--blue-bright); font-weight: 600; font-size: .88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; background: none; border: none; }
+    .service-link:hover { color: var(--blue-deep); }
+    .emergency-card { border: 2px solid var(--orange); }
+    .emergency-card .service-icon { background: var(--orange-light); }
+    .emergency-card .service-icon svg { stroke: var(--orange); }
+    .emergency-card::after { background: var(--orange); }
+
+    /* ── WHY ── */
+    #why { background: var(--blue-deep); color: white; }
+    .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px 80px; align-items: start; }
+    .why-left .section-label { color: #90CAF9; }
+    .why-left .section-title { color: white; }
+    .why-left .section-sub { color: rgba(255,255,255,.7); max-width: 420px; margin-bottom: 32px; }
+    .why-phone-link {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--orange); color: white; padding: 15px 28px;
+      border-radius: var(--radius-sm); font-weight: 700; font-size: 1rem;
+      text-decoration: none; transition: background .2s, transform .15s; cursor: pointer; border: none;
+    }
+    .why-phone-link:hover { background: #e65c00; transform: translateY(-2px); }
+    .why-features { display: flex; flex-direction: column; gap: 24px; }
+    .why-feature { display: flex; gap: 18px; align-items: flex-start; }
+    .why-feature-icon { width: 48px; height: 48px; background: rgba(255,255,255,.1); border-radius: var(--radius-sm); display: grid; place-items: center; flex-shrink: 0; }
+    .why-feature-icon svg { stroke: #90CAF9; }
+    .why-feature-body h4 { font-weight: 700; font-size: 1rem; margin-bottom: 5px; }
+    .why-feature-body p  { color: rgba(255,255,255,.65); font-size: .88rem; line-height: 1.6; }
+
+    /* ── ABOUT ── */
+    #about { background: var(--ice); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .about-visual { background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%); border-radius: var(--radius-lg); padding: 48px 36px; color: white; text-align: center; }
+    .about-stat-row { display: flex; gap: 24px; justify-content: center; margin-top: 32px; }
+    .about-stat { text-align: center; }
+    .about-stat .num { font-family: 'DM Serif Display', serif; font-size: 2.6rem; color: #FFD54F; line-height: 1; }
+    .about-stat .lbl { font-size: .78rem; color: rgba(255,255,255,.7); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+    .about-divider { width: 1px; background: rgba(255,255,255,.15); }
+    .about-content .section-sub { margin-bottom: 28px; }
+    .about-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .about-list li { display: flex; align-items: center; gap: 12px; color: var(--gray-600); font-size: .92rem; }
+    .about-list .check-icon { width: 22px; height: 22px; background: var(--blue-light); border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; color: var(--blue-mid); font-size: .75rem; }
+
+    /* ── TESTIMONIALS ── */
+    #testimonials { background: white; }
+    .testimonials-header { text-align: center; margin-bottom: 52px; }
+    .testimonials-header .section-sub { margin: 0 auto; }
+    .stars { color: #FFC107; font-size: 1.1rem; margin-bottom: 16px; letter-spacing: 2px; }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .tcard { background: var(--gray-100); border-radius: var(--radius-md); padding: 32px 28px; border: 1px solid var(--gray-200); position: relative; }
+    .tcard::before { content:'\201C'; position:absolute; top:20px;right:24px; font-family:'DM Serif Display',serif; font-size:4rem; color:var(--blue-light); line-height:1; }
+    .tcard p { color: var(--gray-600); font-size: .92rem; line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+    .tcard-author { display: flex; align-items: center; gap: 12px; }
+    .tcard-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--blue-mid); color: white; font-weight: 700; font-size: .95rem; display: grid; place-items: center; flex-shrink: 0; }
+    .tcard-name { font-weight: 700; font-size: .9rem; color: var(--blue-deep); }
+    .tcard-loc  { font-size: .78rem; color: var(--gray-400); }
+
+    /* ── SERVICE AREA ── */
+    .service-area { background: var(--blue-light); padding: 56px 24px; text-align: center; }
+    .sa-inner { max-width: 700px; margin: 0 auto; }
+    .sa-inner .section-title { margin: 0 auto 14px; }
+    .sa-inner p { color: var(--gray-600); font-size: .95rem; margin-bottom: 28px; line-height: 1.7; }
+    .sa-tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .sa-tag { background: white; border: 1.5px solid var(--blue-bright); color: var(--blue-deep); padding: 7px 18px; border-radius: 100px; font-size: .84rem; font-weight: 600; }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--gray-100); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 60px; align-items: start; }
+    .contact-info .section-sub { margin-bottom: 36px; }
+    .contact-details { display: flex; flex-direction: column; gap: 20px; }
+    .contact-detail { display: flex; align-items: flex-start; gap: 14px; }
+    .cd-icon { width: 44px; height: 44px; background: var(--blue-light); border-radius: var(--radius-sm); display: grid; place-items: center; flex-shrink: 0; }
+    .cd-icon svg { stroke: var(--blue-mid); }
+    .cd-label { font-size: .78rem; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .cd-value { font-weight: 600; color: var(--blue-deep); font-size: .95rem; }
+    .cd-value a { color: var(--blue-bright); text-decoration: none; cursor: pointer; }
+    .cd-value a:hover { color: var(--blue-deep); text-decoration: underline; }
+    .contact-form { background: white; border-radius: var(--radius-md); padding: 40px 36px; box-shadow: var(--shadow-md); border: 1px solid var(--gray-200); }
+    .form-title { font-weight: 800; font-size: 1.25rem; color: var(--blue-deep); margin-bottom: 6px; }
+    .form-sub   { color: var(--gray-600); font-size: .88rem; margin-bottom: 28px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-group label { font-size: .82rem; font-weight: 600; color: var(--gray-600); letter-spacing: .02em; }
+    .form-group input, .form-group select, .form-group textarea {
+      border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+      padding: 12px 14px; font-size: .92rem; font-family: inherit;
+      color: var(--gray-800); background: var(--gray-100);
+      transition: border-color .2s, box-shadow .2s; outline: none; width: 100%;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--blue-bright); box-shadow: 0 0 0 3px rgba(30,136,229,.12); background: white;
+    }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .btn-submit {
+      width: 100%; background: var(--blue-mid); color: white; padding: 16px;
+      border: none; border-radius: var(--radius-sm); font-weight: 700; font-size: 1rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 8px; transition: background .2s, transform .15s; margin-top: 4px;
+    }
+    .btn-submit:hover { background: var(--blue-deep); transform: translateY(-1px); }
+    .btn-submit:disabled { background: #2E7D32; cursor: default; transform: none; }
+    .form-note { text-align: center; font-size: .78rem; color: var(--gray-400); margin-top: 12px; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--blue-deep); color: rgba(255,255,255,.75); padding: 48px 24px 28px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; }
+    .footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px; padding-bottom: 36px; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .footer-brand .logo-name { color: white; font-size: 1.1rem; }
+    .footer-brand .logo-tag  { color: rgba(255,255,255,.4); }
+    .footer-brand p { margin-top: 14px; font-size: .88rem; line-height: 1.7; color: rgba(255,255,255,.6); }
+    .footer-col h4 { color: white; font-size: .88rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .footer-col li { font-size: .88rem; }
+    .footer-col a { color: rgba(255,255,255,.6); text-decoration: none; transition: color .2s; cursor: pointer; }
+    .footer-col a:hover { color: white; }
+    .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 24px; flex-wrap: wrap; gap: 12px; font-size: .8rem; color: rgba(255,255,255,.4); }
+    .footer-phone-big { color: white; font-weight: 800; font-size: 1.2rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+
+    /* ── REVEAL ── */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity .5s ease, transform .5s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 820px) {
+      .nav-links { display: none; }
+      .hamburger { display: block; }
+      .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 68px; left: 0; right: 0; background: white; border-bottom: 1px solid var(--gray-200); padding: 20px 24px; gap: 18px; box-shadow: var(--shadow-md); z-index: 99; }
+      .why-grid, .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .about-stat-row { gap: 16px; }
+      .about-stat .num { font-size: 2rem; }
+      section { padding: 56px 20px; }
+      .hero { padding: 60px 20px 56px; }
+    }
+    @media (max-width: 480px) {
+      .hero-btns .btn-primary, .hero-btns .btn-secondary { width: 100%; justify-content: center; }
+      .hero-trust { flex-direction: column; align-items: center; gap: 14px; }
+      .nav-cta { display: none; }
+      .modal-box { padding: 36px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- DEMO RIBBON -->
+<div class="demo-ribbon">🔧 <span>DEMO SITE</span> — Northpoint Webworks Portfolio</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- CALL MODAL -->
+<div class="modal-overlay" id="callModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('callModal')">✕</button>
+    <div class="modal-icon">📞</div>
+    <div class="modal-title">Call Summit Air HVAC</div>
+    <div class="modal-body">
+      This is a demo site built by <strong>Northpoint Webworks</strong>.<br><br>
+      On a real client site, this button dials their actual phone number immediately.<br><br>
+      <strong style="color:var(--blue-deep); font-size:1.1rem;">(555) 123-4567</strong>
+    </div>
+    <button class="modal-btn" onclick="closeModal('callModal')">Got it — close</button>
+  </div>
+</div>
+
+<!-- ESTIMATE MODAL -->
+<div class="modal-overlay" id="estimateModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('estimateModal')">✕</button>
+    <div class="modal-icon">📋</div>
+    <div class="modal-title">Free Estimate Request</div>
+    <div class="modal-body">
+      On a real site, this scrolls down to the contact form where the visitor fills out their info.<br><br>
+      The form is fully working below — try submitting it!
+    </div>
+    <button class="modal-btn" onclick="closeModal('estimateModal'); scrollToContact()">Take me to the form →</button>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  ⚡ 24/7 Emergency Service Available —
+  <a onclick="openModal('callModal')">Call (555) 123-4567</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo" onclick="scrollToTop()">
+      <div class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">Summit Air HVAC</span>
+        <span class="logo-tag">Heating & Cooling Experts</span>
+      </div>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a onclick="scrollTo('services')">Services</a></li>
+      <li><a onclick="scrollTo('why')">Why Us</a></li>
+      <li><a onclick="scrollTo('about')">About</a></li>
+      <li><a onclick="scrollTo('testimonials')">Reviews</a></li>
+      <li><a onclick="scrollTo('contact')">Contact</a></li>
+    </ul>
+    <button class="nav-cta" onclick="openModal('callModal')">📞 Call Now</button>
+    <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span> Available Right Now</div>
+    <h1>Fast & Reliable HVAC Repair<br><span>in Your City</span></h1>
+    <p class="hero-sub">Heating & cooling experts available 24/7 for emergency repairs and installations. Same-day service — we show up when you need us most.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="openModal('callModal')">
+        <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.82 19.79 19.79 0 010 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Call Now — (555) 123-4567
+      </button>
+      <button class="btn-secondary" onclick="scrollToContact()">
+        <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+        Get Free Estimate
+      </button>
+    </div>
+    <div class="hero-trust">
+      <span class="trust-item"><span class="check">✔</span> Licensed & Insured</span>
+      <span class="trust-item"><span class="check">✔</span> Same-Day Service</span>
+      <span class="trust-item"><span class="check">✔</span> Upfront Pricing</span>
+      <span class="trust-item"><span class="check">✔</span> 500+ Happy Customers</span>
+    </div>
+  </div>
+</section>
+
+<!-- EMERGENCY BANNER -->
+<div class="emergency-banner">
+  <div class="eb-inner">
+    <div>
+      <strong>🚨 AC not working? Furnace out?</strong>
+      <span>&nbsp; Don't wait — we have technicians on call right now.</span>
+    </div>
+    <button class="eb-call" onclick="openModal('callModal')">Call (555) 123-4567</button>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-inner">
+    <div class="services-header reveal">
+      <div class="section-label">What We Do</div>
+      <h2 class="section-title">Complete Heating & Cooling Services</h2>
+      <p class="section-sub">Whether your AC stopped on the hottest day of summer or your furnace quit in January, Summit Air has you covered fast.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-icon">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1M5.05 5.05l.707.707m12.485 12.485.707.707M3 12h1m16 0h1M5.05 18.95l.707-.707M18.95 5.05l.707-.707"/><circle cx="12" cy="12" r="4"/></svg>
+        </div>
+        <h3>AC Repair</h3>
+        <p>From refrigerant leaks to frozen coils and failed compressors — we diagnose fast and fix it right the first time.</p>
+        <button class="service-link" onclick="scrollToContact()">Get a quote →</button>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/></svg>
+        </div>
+        <h3>Heating Repair</h3>
+        <p>Furnace, heat pump, or boiler problems? We restore warmth to your home quickly before temperatures drop further.</p>
+        <button class="service-link" onclick="scrollToContact()">Get a quote →</button>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <h3>HVAC Installation</h3>
+        <p>Upgrading or building new? We install energy-efficient systems sized perfectly for your home and budget.</p>
+        <button class="service-link" onclick="scrollToContact()">Get a quote →</button>
+      </div>
+      <div class="service-card emergency-card reveal">
+        <div class="service-icon">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <h3>Emergency Service</h3>
+        <p>HVAC emergency at 2am? We're available 24 hours a day, 7 days a week — including weekends and holidays.</p>
+        <button class="service-link" style="color:var(--orange)" onclick="openModal('callModal')">Call now →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section id="why">
+  <div class="section-inner">
+    <div class="why-grid">
+      <div class="why-left reveal">
+        <div class="section-label">Why Homeowners Choose Us</div>
+        <h2 class="section-title">We Show Up. We Fix It.<br>You Stay Comfortable.</h2>
+        <p class="section-sub">Summit Air HVAC has been the trusted name in local heating and cooling because we treat every home like our own. No runaround, no upsells — just honest work at fair prices.</p>
+        <button class="why-phone-link" onclick="openModal('callModal')">
+          <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.82 19.79 19.79 0 010 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          (555) 123-4567 — Free to Call
+        </button>
+      </div>
+      <div class="why-features">
+        <div class="why-feature reveal">
+          <div class="why-feature-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+          <div class="why-feature-body"><h4>24/7 Emergency Service</h4><p>We never make you wait until Monday. A real technician picks up every call, day or night.</p></div>
+        </div>
+        <div class="why-feature reveal">
+          <div class="why-feature-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+          <div class="why-feature-body"><h4>Licensed & Insured Technicians</h4><p>Every Summit Air tech is fully licensed, background-checked, and continuously trained on modern systems.</p></div>
+        </div>
+        <div class="why-feature reveal">
+          <div class="why-feature-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+          <div class="why-feature-body"><h4>Fast Same-Day Service</h4><p>In most cases, we can have a technician at your door the same day you call — often within 2 hours.</p></div>
+        </div>
+        <div class="why-feature reveal">
+          <div class="why-feature-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+          <div class="why-feature-body"><h4>Upfront, Honest Pricing</h4><p>You'll know the cost before we start. No surprise charges, no bait-and-switch. Honest pricing, every time.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:white;line-height:1.3;margin-bottom:8px;">Serving Our Community<br>Since 2011</div>
+        <p style="color:rgba(255,255,255,.7);font-size:.88rem;line-height:1.7;">Locally owned and operated — not a franchise, not a call center. Real neighbors serving real neighbors.</p>
+        <div class="about-stat-row">
+          <div class="about-stat"><div class="num">500+</div><div class="lbl">Homes Served</div></div>
+          <div class="about-divider"></div>
+          <div class="about-stat"><div class="num">12+</div><div class="lbl">Years Local</div></div>
+          <div class="about-divider"></div>
+          <div class="about-stat"><div class="num">4.9★</div><div class="lbl">Avg. Rating</div></div>
+        </div>
+      </div>
+      <div class="about-content reveal">
+        <div class="section-label">Our Story</div>
+        <h2 class="section-title">A Local Company That<br>Actually Cares</h2>
+        <p class="section-sub">Summit Air HVAC was founded right here in the community by a licensed technician who was tired of watching big national chains overcharge homeowners. We built this company on a simple idea: treat people the way you'd want your own family treated.</p>
+        <p class="section-sub" style="margin-bottom:28px;">Every technician on our team lives and works in this area. When you call Summit Air, you're calling your neighbors — people who have a real stake in this community.</p>
+        <ul class="about-list">
+          <li><span class="check-icon">✔</span> Locally owned and operated since 2011</li>
+          <li><span class="check-icon">✔</span> All major brands serviced and installed</li>
+          <li><span class="check-icon">✔</span> 100% satisfaction guarantee</li>
+          <li><span class="check-icon">✔</span> No overtime charges on emergency calls</li>
+          <li><span class="check-icon">✔</span> Free second opinion on any repair estimate</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-inner">
+    <div class="testimonials-header reveal">
+      <div class="section-label">Real Customers, Real Reviews</div>
+      <h2 class="section-title">Homeowners Trust Summit Air</h2>
+      <p class="section-sub">Don't take our word for it — here's what your neighbors are saying.</p>
+    </div>
+    <div class="testimonials-grid">
+      <div class="tcard reveal">
+        <div class="stars">★★★★★</div>
+        <p>"My AC went out on a Saturday afternoon in July. I called Summit Air half expecting to leave a voicemail. Someone picked up immediately, and a tech was at my door within 90 minutes. Fixed in under an hour. I was shocked at how fast and affordable it was."</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar">MR</div>
+          <div><div class="tcard-name">Marcus R.</div><div class="tcard-loc">Homeowner · AC Repair</div></div>
+        </div>
+      </div>
+      <div class="tcard reveal">
+        <div class="stars">★★★★★</div>
+        <p>"Our furnace stopped working in January with temps in the 20s. The Summit Air team was honest about what was wrong, gave us a clear price upfront, and had heat running again the same afternoon. They even checked the whole system before leaving."</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar">DL</div>
+          <div><div class="tcard-name">Diana & Tom L.</div><div class="tcard-loc">Homeowners · Heating Repair</div></div>
+        </div>
+      </div>
+      <div class="tcard reveal">
+        <div class="stars">★★★★★</div>
+        <p>"I got three quotes for a full HVAC replacement. Summit Air wasn't the cheapest, but they were the most thorough — they actually measured my house before sizing the system. Two years later, my energy bills are down and the system runs perfectly."</p>
+        <div class="tcard-author">
+          <div class="tcard-avatar">JK</div>
+          <div><div class="tcard-name">James K.</div><div class="tcard-loc">Homeowner · Full HVAC Install</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICE AREA -->
+<div class="service-area">
+  <div class="sa-inner reveal">
+    <div class="section-label">Coverage</div>
+    <h2 class="section-title">Serving Local Homeowners<br>in Your Area</h2>
+    <p>We proudly serve homeowners across the region. If you're not sure whether we come to your neighborhood — just call. We'll let you know right away.</p>
+    <div class="sa-tags">
+      <span class="sa-tag">Downtown</span>
+      <span class="sa-tag">Northside</span>
+      <span class="sa-tag">Eastview</span>
+      <span class="sa-tag">Westwood</span>
+      <span class="sa-tag">Riverside</span>
+      <span class="sa-tag">Lakewood</span>
+      <span class="sa-tag">Hillcrest</span>
+      <span class="sa-tag">Mapleton</span>
+      <span class="sa-tag">+ Surrounding Areas</span>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <div class="section-label">Get In Touch</div>
+        <h2 class="section-title">Request Service<br>or a Free Estimate</h2>
+        <p class="section-sub">Fill out the form or just give us a call — we're available around the clock. Most requests get a response within 30 minutes.</p>
+        <div class="contact-details">
+          <div class="contact-detail">
+            <div class="cd-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.82 19.79 19.79 0 010 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+            <div>
+              <div class="cd-label">Phone</div>
+              <div class="cd-value"><a onclick="openModal('callModal')">(555) 123-4567</a></div>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <div class="cd-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+            <div>
+              <div class="cd-label">Email</div>
+              <div class="cd-value"><a onclick="showToast('info','📧  Email: service@summitairhvac.com')">service@summitairhvac.com</a></div>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <div class="cd-icon"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            <div>
+              <div class="cd-label">Hours</div>
+              <div class="cd-value">24/7 — Emergency Service Always Available</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- CONTACT FORM -->
+      <div class="contact-form reveal" id="contactForm">
+        <div id="formContent">
+          <div class="form-title">Request Service</div>
+          <div class="form-sub">We'll get back to you within 30 minutes during business hours.</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fname">Your Name *</label>
+              <input type="text" id="fname" placeholder="John Smith" />
+            </div>
+            <div class="form-group">
+              <label for="fphone">Phone Number *</label>
+              <input type="tel" id="fphone" placeholder="(555) 000-0000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="femail">Email Address</label>
+            <input type="email" id="femail" placeholder="john@email.com" />
+          </div>
+          <div class="form-group">
+            <label for="fservice">Service Needed *</label>
+            <select id="fservice">
+              <option value="">Select a service...</option>
+              <option>AC Repair</option>
+              <option>Heating Repair</option>
+              <option>HVAC Installation</option>
+              <option>Emergency Service</option>
+              <option>Maintenance / Tune-Up</option>
+              <option>Free Estimate</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fmessage">Tell Us What's Happening</label>
+            <textarea id="fmessage" placeholder="e.g. My AC stopped blowing cold air yesterday and it's making a strange noise..."></textarea>
+          </div>
+          <button class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+            <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Request Service
+          </button>
+          <p class="form-note">🔒 Your info is private. We never share or sell it.</p>
+        </div>
+        <!-- SUCCESS STATE -->
+        <div id="formSuccess" style="display:none; text-align:center; padding: 20px 0;">
+          <div style="font-size:3.5rem; margin-bottom:16px;">✅</div>
+          <div style="font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--blue-deep); margin-bottom:12px;">Request Sent!</div>
+          <p style="color:var(--gray-600); font-size:.95rem; line-height:1.7; margin-bottom:24px;">
+            Thanks, <strong id="successName"></strong>! A Summit Air technician will call you at <strong id="successPhone"></strong> within 30 minutes.
+          </p>
+          <div style="background:var(--blue-light); border-radius:var(--radius-md); padding:20px; margin-bottom:20px;">
+            <div style="font-weight:700; color:var(--blue-deep); margin-bottom:4px;">Your Request Summary</div>
+            <div style="color:var(--gray-600); font-size:.88rem;" id="successSummary"></div>
+          </div>
+          <button class="modal-btn" onclick="resetForm()" style="background:var(--blue-mid);">Submit Another Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo" style="margin-bottom:12px;">
+          <div class="logo-icon" style="background:rgba(255,255,255,.15);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+          </div>
+          <div class="logo-text">
+            <span class="logo-name">Summit Air HVAC</span>
+            <span class="logo-tag">Heating & Cooling Experts</span>
+          </div>
+        </div>
+        <p>Locally owned and operated. Serving our community with honest, fast, and reliable HVAC service since 2011.</p>
+        <div class="footer-phone-big" style="margin-top:18px;" onclick="openModal('callModal')">📞 (555) 123-4567</div>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a onclick="scrollTo('services')">AC Repair</a></li>
+          <li><a onclick="scrollTo('services')">Heating Repair</a></li>
+          <li><a onclick="scrollTo('services')">HVAC Installation</a></li>
+          <li><a onclick="scrollTo('services')">Emergency Service</a></li>
+          <li><a onclick="scrollTo('services')">Maintenance Plans</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a onclick="scrollTo('about')">About Us</a></li>
+          <li><a onclick="scrollTo('testimonials')">Reviews</a></li>
+          <li><a onclick="scrollToContact()">Contact</a></li>
+          <li><a onclick="scrollToContact()">Free Estimate</a></li>
+          <li><a onclick="showToast('info','📧  service@summitairhvac.com')">Email Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Summit Air HVAC. All rights reserved. Licensed & Insured.</span>
+      <span>service@summitairhvac.com &nbsp;·&nbsp; (555) 123-4567 &nbsp;·&nbsp; Available 24/7</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  /* ── SCROLL HELPERS ── */
+  function scrollTo(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('navLinks').classList.remove('open');
+  }
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function scrollToContact() {
+    document.getElementById('contact').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    closeModal('estimateModal');
+  }
+
+  /* ── MODALS ── */
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+  });
+
+  /* ── TOAST ── */
+  let toastTimer;
+  function showToast(type, msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.className = '', 3500);
+  }
+
+  /* ── CONTACT FORM ── */
+  function handleSubmit() {
+    const name    = document.getElementById('fname').value.trim();
+    const phone   = document.getElementById('fphone').value.trim();
+    const email   = document.getElementById('femail').value.trim();
+    const service = document.getElementById('fservice').value;
+    const message = document.getElementById('fmessage').value.trim();
+
+    if (!name) { showToast('error', '⚠️  Please enter your name'); document.getElementById('fname').focus(); return; }
+    if (!phone) { showToast('error', '⚠️  Please enter your phone number'); document.getElementById('fphone').focus(); return; }
+    if (!service) { showToast('error', '⚠️  Please select a service'); document.getElementById('fservice').focus(); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      document.getElementById('formContent').style.display = 'none';
+      const succ = document.getElementById('formSuccess');
+      succ.style.display = 'block';
+      document.getElementById('successName').textContent  = name;
+      document.getElementById('successPhone').textContent = phone;
+      let summary = `Service: ${service}`;
+      if (email)   summary += ` · Email: ${email}`;
+      if (message) summary += `\nNote: "${message}"`;
+      document.getElementById('successSummary').textContent = summary;
+      showToast('', '✅  Request submitted! We\'ll call you soon.');
+    }, 900);
+  }
+
+  function resetForm() {
+    document.getElementById('fname').value    = '';
+    document.getElementById('fphone').value   = '';
+    document.getElementById('femail').value   = '';
+    document.getElementById('fservice').value = '';
+    document.getElementById('fmessage').value = '';
+    document.getElementById('formSuccess').style.display  = 'none';
+    document.getElementById('formContent').style.display  = '';
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Request Service';
+    btn.disabled = false;
+  }
+
+  /* ── SCROLL REVEAL ── */
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
